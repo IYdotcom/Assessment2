@@ -1,0 +1,32 @@
+**1. Advanced Data Cleaning (Pandas)**  
+import pandas as pd
+df= pd.read_csv('/Users/ishayadav/PycharmProjects/PythonProject/dataset2.csv')
+
+#Handle duplicate rows (keep first valid entry)
+df_unique = df.drop_duplicates(keep='first')
+#Fix Product typos (map variations to canonical names: ProdA/Product A → "Product A")
+product_standardisation = {
+    'ProdA': 'Product A',
+    'Prod B': 'Product B',
+    'Item C': 'Product C',
+}
+df['Product'] = df['Product'].replace(product_standardisation)
+#Replace negative Quantity with 1
+df.loc[df['Quantity'] < 0, 'Quantity'] = 1
+
+#Drop rows with negative price
+df = df.loc[df['Price'] >= 0]
+
+#Fix Category inconsistencies (all electronics-related typos → "Electronics")
+
+#Impute missing Regions using CustomerID's most common region
+region_map = df.groupby('CustomerID')['Region'].agg(lambda x: x.mode()[0] if not x.mode().empty else 'Unknown')
+
+df['Region'] = df['Region'].fillna(df['CustomerID'].map(region_map))
+
+print(df)
+
+#Create `IsPromo` flag from PromoCode
+df['IsPromo'] = df['PromoCode'].notna().astype(int)
+
+print(df)
